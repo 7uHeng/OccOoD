@@ -17,4 +17,4 @@ VAA-KITTI and VAA-KITTI-360. These synthesized
 datasets extend the original label sets by introducing
 anomaly labels, encompassing 26 distinct categories of
 anomalies such as animals, furniture, and garbage bags.
-.<div align=center><img src="https://github.com/7uHeng/OccOoD/blob/main/asserts/Distribution.png" width="698" height="651" /></div>
+.<div align=center><img src="https://github.com/7uHeng/OccOoD/blob/main/asserts/Distribution.png" width="523.5" height="488.25" /></div>
