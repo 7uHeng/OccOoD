@@ -4,7 +4,7 @@ VAA-KITTI and VAA-KITTI-360. We introduce OccOoD, a novel framework integrating 
 OoD detection via geometry-semantic fusion.
 
 *Code is coming soon!*
-## OccOoD [[PDF]](URL "file:///D:/11200/WeChat%20Files/wxid_9mi439miqkfm22/FileStorage/File/2025-06/OccOoD_arXiv(1).pdf")
+## OccOoD
 ![visualization](https://github.com/7uHeng/OccOoD/blob/main/asserts/Visualization.png)
 ## Synthetic Anomaly Integration Pipeline
 ![Synthetic Anomaly Integration Pipeline](https://github.com/7uHeng/OccOoD/blob/main/asserts/Pipeline.png)
