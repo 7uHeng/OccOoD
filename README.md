@@ -25,3 +25,14 @@ This project is based on the following open-source projects. We thank their auth
 * [SGN](https://github.com/Jieqianyu/SGN)
 * [mmdet3d](https://github.com/open-mmlab/mmdetection3d)
 * [OccRWKV](https://github.com/jmwang0117/OccRWKV)
+## Citation
+If you find this work useful in your research, please cite the following BibTeX entry:
+
+```bibtex
+@article{zhang2025out,
+  title={Out-of-Distribution Semantic Occupancy Prediction},
+  author={Zhang, Yuheng and Duan, Mengfei and Peng, Kunyu and Wang, Yuhang and Liu, Ruiping and Teng, Fei and Luo, Kai and Li, Zhiyong and Yang, Kailun},
+  journal={arXiv preprint arXiv:2506.21185},
+  year={2025}
+}
+```
