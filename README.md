@@ -1,5 +1,4 @@
-# [ArXiv 25] Out-of-Distribution Semantic Occupancy Prediction
-*Code is coming soon!*
+# Out-of-Distribution Semantic Occupancy Prediction
 ## OccOoD
 ![visualization](https://github.com/7uHeng/OccOoD/blob/main/asserts/Visualization.png)
 ## Synthetic Anomaly Integration Pipeline
@@ -18,7 +17,12 @@ datasets extend the original label sets by introducing
 anomaly labels, encompassing 26 distinct categories of
 anomalies such as animals, furniture, and garbage bags.
 .<div align=center><img src="https://github.com/7uHeng/OccOoD/blob/main/asserts/Distribution.png" width="523.5" height="488.25" /></div>
+## Getting Started
+* Refer to [install.md](https://github.com/7uHeng/OccOoD/blob/main/docs/install.md) to install the environment.
+* Refer to [dataset.md](https://github.com/7uHeng/OccOoD/blob/main/docs/dataset.md) to prepare SemanticKITTI and KITTI360 dataset.
+* Refer to [run.md](https://github.com/7uHeng/OccOoD/blob/main/docs/run.md) for training and evaluation.
 ## Updates
+* [2025/08] Code is now publicly available! The OOD (Out-of-Distribution) dataset will be released upon acceptance of the paper.  Please stay tuned for updates.
 * [2025/06] Init repository. The code and datasets will be made publicly available upon acceptance of the paper. Thank you for your interest in our work!
 ## Acknowledgement
 This project is based on the following open-source projects. We thank their authors for making the source code publically available.
