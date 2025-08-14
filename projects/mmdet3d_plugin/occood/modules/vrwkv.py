@@ -113,7 +113,7 @@ T_MAX = 66000
 
 # path
 from torch.utils.cpp_extension import load
-wkv_cuda = load(name="wkv", sources=["/root/autodl-tmp/mmdetection3d/SGN/projects/mmdet3d_plugin/sgn/cuda/wkv_op.cpp", "/root/autodl-tmp/mmdetection3d/SGN/projects/mmdet3d_plugin/sgn/cuda/wkv_cuda.cu"],
+wkv_cuda = load(name="wkv", sources=["/root/autodl-tmp/mmdetection3d/OccOoD/projects/mmdet3d_plugin/occood/cuda/wkv_op.cpp", "/root/autodl-tmp/mmdetection3d/OccOoD/projects/mmdet3d_plugin/occood/cuda/wkv_cuda.cu"],
                 verbose=True, extra_cuda_cflags=['-res-usage', '--maxrregcount 60', '--use_fast_math', '-O3', '-Xptxas -O3', f'-DTmax={T_MAX}'])
 
 

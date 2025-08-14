@@ -1,9 +1,5 @@
 # ---------------------------------------------
 # Copyright (c) OpenMMLab. All rights reserved.
-# ---------------------------------------------
-#  Modified by Jianbiao Mei
-# ---------------------------------------------
-
 import os
 import torch
 import numpy as np
