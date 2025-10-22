@@ -95,7 +95,7 @@ def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
             target_ood = target_voxels.clone()
             #original label
             target_ood_original = target_voxels.clone()
-            target_ood_original[(target_ood_original < 20)& (target_ood_original == 255) ] = 0
+            target_ood_original[target_ood_original < 20] = 0
             target_ood_original[(target_ood_original >= 20) & (target_ood_original < 255)] = 1
             label_20_mask = (target_ood == 20)
             # dilation_radius
@@ -119,7 +119,7 @@ def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
             added_label_counts.append(added_label_20_count.item())
 
             target_ood[expanded_label_20] = 20
-            target_ood[(target_ood < 20 ) & (target_ood == 255)] = 0
+            target_ood[target_ood < 20] = 0
             target_ood[(target_ood >= 20) & (target_ood < 255)] = 1
 
             ood_gts_original.extend([target_ood_original.cpu().numpy()])
