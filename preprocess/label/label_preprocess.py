@@ -84,7 +84,8 @@ def majority_pooling(grid, k_size=2):
 
 def main(config):
     scene_size = (256, 256, 32)
-    sequences = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
+    # sequences = ["00", "01", "02", "03", "04", "05", "06", "07", "08", "09", "10"]
+    sequences = ["09", "10"]
     remap_lut = SemanticKittiIO._get_remap_lut(
         os.path.join(
             "./label/semantic-kitti.yaml",
@@ -104,7 +105,7 @@ def main(config):
         out_dir = os.path.join(config.kitti_preprocess_root, "labels", sequence)
         os.makedirs(out_dir, exist_ok=True)
 
-        downscaling = {"1_1": 1, "1_2": 2}
+        downscaling = {"1_1": 1, "1_2": 2, "1_8": 8}
 
         for i in tqdm(range(len(label_paths))):
 

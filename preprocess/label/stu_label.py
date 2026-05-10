@@ -85,7 +85,7 @@ def majority_pooling(grid, k_size=2):
 def main(config):
     scene_size = (256, 256, 32)
     sequences = ["125",  "144", "145", '146', '147', '148']
-    #将 SemanticKITTI 数据集中的类别重新映射到目标类别。
+    # Remap categories from the SemanticKITTI dataset to target categories.
     remap_lut = SemanticKittiIO._get_remap_lut(
         os.path.join(
             "./label/stu.yaml",
@@ -113,7 +113,7 @@ def main(config):
 
         for i in tqdm(range(len(label_paths))):
 
-            frame_id, extension = os.path.splitext(os.path.basename(label_paths[i]))#得修改保存的名字
+            frame_id, extension = os.path.splitext(os.path.basename(label_paths[i]))  # Need to modify the saved filename
 
             LABEL = SemanticKittiIO._read_label_SemKITTI(label_paths[i])
             INVALID = SemanticKittiIO._read_invalid_SemKITTI(invalid_paths[i])
@@ -124,7 +124,7 @@ def main(config):
                 np.isclose(INVALID, 1)
             ] = 255  # Setting to unknown all voxels marked on invalid mask...
             LABEL = LABEL.reshape([256, 256, 32])
-            #保留一份21类的label
+            # Keep a copy of the 21-class label
             for scale in downscaling:
                 filename = frame_id + "_" + scale + ".npy"
                 label_filename = os.path.join(out_dir, filename)
