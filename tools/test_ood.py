@@ -335,6 +335,7 @@ def main():
         ood_gts = np.array(ood_gts)
         anomaly_scores = np.array(anomaly_scores)
         ood_gts_original = np.array(ood_gts_original)
+        print(">>> ood_begin >>>")
         ood_metrics = evaluate_ood(
             anomaly_score=anomaly_scores,
             ood_gts=ood_gts,
