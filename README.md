@@ -41,6 +41,19 @@ These synthesized datasets extend the original label sets by introducing **anoma
 
 ---
 
+## 🤖 Model Zoo
+
+Pretrained models and training logs are available on Hugging Face.
+
+| Dataset | Model / Config | mIoU | Log | Checkpoint |
+|:-------:|:--------------:|:----:|:---:|:----------:|
+| SemanticKITTI | OccOoD-T | 16.8 | [📄 log](https://huggingface.co/7uheng/occood/blob/main/10sq_OccOoD-T16.8.log) | [⚙️ pth](https://huggingface.co/7uheng/occood/blob/main/10sq_OccOoD-T16.8.pth) |
+| SemanticKITTI | OccOoD-S (spldepth) | 13.79 | [📄 log](https://huggingface.co/7uheng/occood/blob/main/7sq_OccOoD-S-spldepth_13.79.log) | [⚙️ pth](https://huggingface.co/7uheng/occood/blob/main/7sq_OccOoD-S-spldepth_13.79.pth) |
+| KITTI-360 | OccOoD-T | 18.38 | [📄 log](https://huggingface.co/7uheng/occood/blob/main/kitti360OccOoD-T_18.38.log) | [⚙️ pth](https://huggingface.co/7uheng/occood/blob/main/kitti360OccOoD-T_18.38.pth) |
+| KITTI-360 | OccOoD-S (spldepth) | 12.47 | [📄 log](https://huggingface.co/7uheng/occood/blob/main/occood-s-spl-kitti360-23epoch-12.47.log) | [⚙️ pth](https://huggingface.co/7uheng/occood/blob/main/occood-s-spl-kitti360-23epoch-12.47.pth) |
+
+---
+
 ## 🚀 Getting Started
 
 | Step | Description |
