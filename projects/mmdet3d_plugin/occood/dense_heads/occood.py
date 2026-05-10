@@ -8,7 +8,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 from mmdet.models import HEADS, builder
 from projects.mmdet3d_plugin.occood.utils.header import Header, SparseHeader
-from projects.mmdet3d_plugin.occood.modules.sgb import Sem_RWKV
+from projects.mmdet3d_plugin.occood.modules.sgb import Sem_RWKV, SGB
 from projects.mmdet3d_plugin.occood.modules.sdb import SDB
 from projects.mmdet3d_plugin.occood.modules.flosp import FLoSP
 from projects.mmdet3d_plugin.occood.utils.lovasz_losses import lovasz_softmax
@@ -59,9 +59,10 @@ class OccOoDHead(nn.Module):
         CE_ssc_loss=True,
         geo_scal_loss=True,
         sem_scal_loss=True,
-        save_flag = False,
-        ood_flag = False,
-        save_flag_ood = False,
+        save_flag = True,
+        # ood_flag = False,
+        ood_flag = True,
+        save_flag_ood = True,
         use_sem = True,
         **kwargs
     ):
@@ -73,7 +74,7 @@ class OccOoDHead(nn.Module):
         self.real_h = 51.2
         self.embed_dims = embed_dims
 
-        if kwargs.get('dataset', 'semantickitti') == 'semantickitti':#1，2，3，4，5，6，7，8
+        if kwargs.get('dataset', 'semantickitti') == 'semantickitti':# 1, 2, 3, 4, 5, 6, 7, 8
             self.class_names =  [ "empty", "car", "bicycle", "motorcycle", "truck", "other-vehicle", "person", "bicyclist", "motorcyclist", "road", 
                                 "parking", "sidewalk", "other-ground", "building", "fence", "vegetation", "trunk", "terrain", "pole", "traffic-sign",]
             self.class_weights = torch.from_numpy(np.array([0.446, 0.603, 0.852, 0.856, 0.747, 0.734, 0.801, 0.796, 0.818, 0.557, 0.653, 0.568, 0.683, 0.560, 0.603, 0.530, 0.688, 0.574, 0.716, 0.786]))
@@ -93,6 +94,7 @@ class OccOoDHead(nn.Module):
             nn.LeakyReLU(),
             nn.Linear(self.embed_dims//2, self.embed_dims)
         )
+
         occ_channel = 8 if pts_header_dict.get('guidance', False) else 0
         self.sdb = SDB(channel=self.embed_dims+occ_channel, out_channel=self.embed_dims//2, depth=depth)
         self.occ_rwkv_branch = Occbranch(self.embed_dims, bev_h, bev_w, bev_z)
@@ -102,6 +104,7 @@ class OccOoDHead(nn.Module):
         )
         self.sem_header = SparseHeader(self.n_classes, feature=self.embed_dims)
         self.ssc_header = Header(self.n_classes, feature=self.embed_dims//2)
+        self.pts_header = builder.build_head(pts_header_dict)
         self.dilation = 1
         self.bilinear = True
         self.group_conv = False
@@ -109,7 +112,6 @@ class OccOoDHead(nn.Module):
         self.dropout = 0.5
         self.circular_padding = False
         self.dropblock = False
-        self.pts_header = builder.build_head(pts_header_dict)
         self.bevbranch = BEVUNetv1(self.n_classes*self.bev_z, self.bev_z, self.dilation, self.bilinear, self.group_conv,
                             self.input_batch_norm, self.dropout, self.circular_padding, self.dropblock)
         self.reduction = nn.Sequential(
@@ -117,17 +119,15 @@ class OccOoDHead(nn.Module):
             nn.BatchNorm2d(128),
             nn.ReLU()
         )
-        self.fusion_attn = AttentiveFusion(n_classes = self.n_classes)
-        if self.use_sem:
-            self.sem_decoder = Sem_Decoder(input_channel=self.embed_dims, num_classes=self.n_classes, ratio=2)
+        self.fusion_conv = nn.Conv3d(in_channels=self.n_classes*2,
+                             out_channels=self.n_classes, kernel_size=1)
         self.CE_ssc_loss = CE_ssc_loss
         self.sem_scal_loss = sem_scal_loss
         self.geo_scal_loss = geo_scal_loss
         self.save_flag = save_flag
-        self.save_flag_ood =save_flag_ood
         self.ood_flag = ood_flag
-        self.use_sem = use_sem
-
+        self.save_flag_ood =save_flag_ood
+        
     def forward(self, mlvl_feats, img_metas, target):
         """Forward function.
         Args:
@@ -140,35 +140,21 @@ class OccOoDHead(nn.Module):
             ssc_logit (Tensor): Outputs from the segmentation head.
         """
         out = {}
-
-        if self.use_sem:
-            sem_feats = mlvl_feats[-1].squeeze(1)
-            if len(sem_feats.shape) == 5:
-                sem_feats = sem_feats[:, -1, :, :, :]
-            sem_out = self.sem_decoder(sem_feats)
-            out["sem"] = sem_out.unsqueeze(0)
-
-
         x3d = self.flosp(mlvl_feats, img_metas) # bs, c, nq
         bs, c, _ = x3d.shape
         x3d = self.bottleneck(x3d.reshape(bs, c, self.bev_h, self.bev_w, self.bev_z))
         occ = self.occ_header(x3d).squeeze(1)
-        out["occ"] = occ 
+        out["occ"] = occ
 
-        # geometry paring
-        geo_bev_dense = self.occ_rwkv_branch(x3d)
-        out['geo_occ_2'], out['geo_occ_4'], out['geo_occ_8'] = geo_bev_dense['mss_logits_list']
-
+        # The refined x3d enters occ_rwkv_branch to obtain multi-scale BEV dense geometry features
+        geo_bev_dense = self.occ_rwkv_branch(x3d)  ##[B, 32, 128, 128], [B, 64, 64, 64], #[B, 128, 32, 32]
+        
         x3d = x3d.reshape(bs, c, -1)
         # Load proposals
         pts_out = self.pts_header(mlvl_feats, img_metas, target)
         pts_occ = pts_out['occ_logit'].squeeze(1)
         proposal =  (pts_occ > 0).float().detach().cpu().numpy()
         out['pts_occ'] = pts_occ
-
-        occ_full = pts_out['occ_full'].squeeze(1)
-        out['pts_occ_full'] = occ_full
-
 
         if proposal.sum() < 2:
             proposal = np.ones_like(proposal)
@@ -182,19 +168,20 @@ class OccOoDHead(nn.Module):
         coords_torch = torch.from_numpy(np.concatenate(
             [np.zeros_like(seed_coords[:, :1]), seed_coords], axis=1)).to(seed_feats.device)
         
-        # semantic_refinemant
-        seed_feats_desc, sem_bev_dense = self.sem_rwkv_branch(seed_feats, coords_torch)
-        out['sem_2'], out['sem_4'], out['sem_8'] = sem_bev_dense['mss_logits_list']
-        out['coord_2'], out['coord_4'], out['coord_8'] = sem_bev_dense['coord_list']
+        # Input seed features to obtain semantically enhanced seed features and multi-scale semantically enhanced seed BEV features
+        # seed_feats_desc = self.sgb(seed_feats, coords_torch)
+        seed_feats_desc, sem_bev_dense= self.sem_rwkv_branch(seed_feats, coords_torch)
+
+        # Enhance seed features via semantic loss
         sem = self.sem_header(seed_feats_desc)
         out["sem_logit"] = sem
         out["coords"] = seed_coords
 
-        # cross-view_feature_synergy
+        # Fuse multi-scale BEV dense geometry features, multi-scale semantically enhanced seed BEV features, and x3d_bev to obtain bev_ssc logit
         x3d_bev = x3d.reshape(bs, c, self.bev_h, self.bev_w, self.bev_z)
-        x3d_bev = x3d_bev.permute(0, 1, 4, 2, 3) # [B, 128, 16, 128, 128]
-        bev_x3d = self.reduction(x3d_bev.flatten(1, 2)) # B, 128, 128, 128
-        x = self.bevbranch(bev_x3d, sem_bev_dense['mss_bev_dense'], geo_bev_dense['mss_bev_dense']) # bev3d logits
+        x3d_bev = x3d_bev.permute(0, 1, 4, 2, 3)#[B, 128, 16, 128, 128]
+        bev_x3d = self.reduction(x3d_bev.flatten(1, 2))# B, 128, 128, 128
+        x = self.bevbranch(bev_x3d, sem_bev_dense['mss_bev_dense'], geo_bev_dense['mss_bev_dense'])#bev3d logits
 
         # Complete voxel features
         vox_feats = torch.empty((self.bev_h, self.bev_w, self.bev_z, self.embed_dims), device=x3d.device)
@@ -205,10 +192,13 @@ class OccOoDHead(nn.Module):
         vox_feats_diff = vox_feats_flatten.reshape(self.bev_h, self.bev_w, self.bev_z, self.embed_dims).permute(3, 0, 1, 2).unsqueeze(0)
         if self.pts_header.guidance:
             vox_feats_diff = torch.cat([vox_feats_diff, pts_out['occ_x']], dim=1)
-        vox_feats_diff = self.sdb(vox_feats_diff) # 1, C, H, W, Z
+        vox_feats_diff = self.sdb(vox_feats_diff) # 1, C,H,W,Z
         ssc_dict = self.ssc_header(vox_feats_diff)
 
-        ssc_dict["ssc_f_logit"] = self.fusion_attn(x, ssc_dict["ssc_logit"])
+        ssc_dict["bev_logit"]= x
+        # Fuse voxel ssc logit and bev ssc logit
+        fused_features = torch.cat([x, ssc_dict["ssc_logit"]], dim=1)
+        ssc_dict["ssc_f_logit"] = self.fusion_conv(fused_features) 
         
         out.update(ssc_dict)
         
@@ -226,8 +216,7 @@ class OccOoDHead(nn.Module):
         """
 
         ssc_pred = out_dict["ssc_f_logit"]
-        ssc_pred_bev = out_dict["bev_logit"]
-        ssc_pred_vox = out_dict["ssc_logit"]
+        # ssc_pred = out_dict["ssc_logit"]
         if step_type== "train":
             sem_pred_2 = out_dict["sem_logit"]
 
@@ -238,14 +227,9 @@ class OccOoDHead(nn.Module):
 
             class_weight = self.class_weights.type_as(target)
             if self.CE_ssc_loss:
-                loss_ssc_bev = CE_ssc_loss(ssc_pred_bev, target, class_weight)
-                loss_ssc_vox = CE_ssc_loss(out_dict["ssc_logit"], target, class_weight)
-                loss_ssc_fus = CE_ssc_loss(out_dict["ssc_f_logit"], target, class_weight)
+                loss_ssc = CE_ssc_loss(ssc_pred, target, class_weight)
+                loss_dict['loss_ssc'] = loss_ssc
 
-                loss_dict['loss_ssc_bev'] = loss_ssc_bev * 0.3
-                loss_dict['loss_ssc_vox'] = loss_ssc_vox * 0.7
-                loss_dict['loss_ssc'] = loss_ssc_fus * 1.0
- 
             if self.sem_scal_loss:
                 loss_sem_scal = sem_scal_loss(ssc_pred, target)
                 loss_dict['loss_sem_scal'] = loss_sem_scal
@@ -265,56 +249,29 @@ class OccOoDHead(nn.Module):
 
             loss_dict['loss_pts'] = F.binary_cross_entropy(out_dict['pts_occ'].sigmoid()[target_2_binary!=255], target_2_binary[target_2_binary!=255].float())
 
-            ones_1 = torch.ones_like(target).to(target.device)
-            target_binary = torch.where(torch.logical_or(target==255, target==0), target, ones_1)
-            loss_dict['loss_pts_full'] = F.binary_cross_entropy(out_dict['pts_occ_full'].sigmoid()[target_binary!=255], target_binary[target_binary!=255].float())
-
-            target_8 = torch.from_numpy(img_metas[0]['target_1_8']).unsqueeze(0).to(target.device)
-
-            ones_2 = torch.ones_like(target_2).to(target_2.device)
-            target_2_binary = torch.where(torch.logical_or(target_2==255, target_2==0), target_2, ones_2)
-            ones_8 = torch.ones_like(target_8).to(target_8.device)
-            target_8_binary = torch.where(torch.logical_or(target_8==255, target_8==0), target_8, ones_8)
-
-            loss_occ_2 = F.binary_cross_entropy(out_dict['geo_occ_2'].squeeze(1).sigmoid()[target_2_binary!=255], target_2_binary[target_2_binary!=255].float())
-            loss_dict['loss_occ_2'] = loss_occ_2 * 0.3
-            loss_occ_8 = F.binary_cross_entropy(out_dict['geo_occ_8'].squeeze(1).sigmoid()[target_8_binary!=255], target_8_binary[target_8_binary!=255].float())
-            loss_dict['loss_occ_8'] = loss_occ_8 * 0.1
-
-            vw1_coord = out_dict['coord_2']
-            vw3_coord = out_dict['coord_8']
-
-            vw_label_02 = get_sparse_labels(target_2.permute(0, 3, 1, 2), vw1_coord)
-            vw_label_08 = get_sparse_labels(target_8.permute(0, 3, 1, 2), vw3_coord)  
-
-            sem_pred_2 = out_dict['sem_2']
-            sem_pred_8 = out_dict['sem_8']
-
-            sem_scal_loss_val_2 = sem_scal_loss_pts(sem_pred_2, vw_label_02)  # Calculate semantic scale loss
-            sem_scal_loss_val_8 = sem_scal_loss_pts(sem_pred_8, vw_label_08)
-
-            loss_dict['loss_sem_2'] = sem_scal_loss_val_2 * 0.3
-            loss_dict['loss_sem_8'] = sem_scal_loss_val_8 * 0.1
-
-
-            if self.use_sem:
-                sem_pred = out_dict["sem"]
-                target_2d = torch.from_numpy(img_metas[0]["semantic"]).unsqueeze(0).to(ssc_pred.device)
-                ce_loss = CE_loss_2D(sem_pred, target_2d, 4)
-                loss_dict['loss_2d_ce'] = ce_loss
-
             return loss_dict
-
         elif step_type== "val" or "test":
             result = dict()
             result['output_voxels'] = ssc_pred
             result['target_voxels'] = target
             if self.ood_flag :
+
                 # geometry prior
                 y_pred = ssc_pred.detach().cpu().numpy()
                 predicted_classes = np.argmax(y_pred, axis=1)
                 # empty
-                empty_mask = (predicted_classes == 0) # (batch_size, depth, height, width)\
+                empty_mask = (predicted_classes == 0) # (batch_size, depth, height, width)
+                # ood_pred = ssc_pred.squeeze(0)
+                # ood_pred = F.softmax(ood_pred, dim=0) # softmax operation (20, depth, height, width)
+                # # ood_pred = get_energy(ood_pred).unsqueeze(0) # post-processing (1, depth, height, width)
+                # # ood_pred = get_postpro(ood_pred).unsqueeze(0) # post-processing (1, depth, height, width)
+                # ood_pred = get_entropy(ood_pred).unsqueeze(0) # post-processing (1, depth, height, width)
+                # min_ood_score = ood_pred.min()
+
+                # empty_mask_expanded = torch.tensor(empty_mask) # (1, depth, height, width)
+                # ood_pred[empty_mask_expanded] = min_ood_score # Set anomaly scores of empty regions to the minimum
+
+                # result['ood_pred'] = ood_pred
                 # semkitti
                 # class
                 class_masks = {
@@ -348,13 +305,13 @@ class OccOoDHead(nn.Module):
                     mask = mask.unsqueeze(1) # (batch_size, 1, depth, height, width)
                     class_voxels = (ssc_pred * mask).squeeze(0) # (20, depth, height, width)
                     if class_idx in instance_classes:
-                        # instance：cosine_similarity
+                        # instance: cosine_similarity
                         class_ood_pred = get_cosine_similarity(class_voxels).unsqueeze(0) # (bs, depth, height, width)
                         min_val = class_ood_pred.min()
                         max_val = class_ood_pred.max()
                         class_ood_pred = (class_ood_pred - min_val) / (max_val - min_val)
                     elif class_idx in region_classes:
-                        # region：entropy
+                        # region: entropy
                         class_voxels = F.softmax(class_voxels, dim=0) # (20, depth, height, width)
                         class_ood_pred = get_entropy(class_voxels).unsqueeze(0)  # (bs, depth, height, width)
                         min_val = class_ood_pred.min()
@@ -412,6 +369,12 @@ class OccOoDHead(nn.Module):
             
                 min_ood_score = ood_pred_all.min()
                 empty_mask_expanded = torch.tensor(empty_mask,device=ssc_pred.device) # (1, depth, height, width)
+                
+                # class_voxels_empty = (ssc_pred * empty_mask_expanded).squeeze(0)
+                # class_voxels_empty = F.softmax(class_voxels_empty, dim=0)
+                # class_ood_pred_empty = get_entropy(class_voxels_empty).unsqueeze(0)
+                # ood_pred_all[empty_mask_expanded] = class_ood_pred_empty[empty_mask_expanded]
+                
                 ood_pred_all[empty_mask_expanded] = min_ood_score # empty min_ood_score
                 ood_pred = ood_pred_all
                 result['ood_pred'] = ood_pred            
@@ -469,7 +432,7 @@ class OccOoDHead(nn.Module):
         return vox_coords
     def save_ood_pred(self, img_metas, y_pred):
         # save predictions
-        pred_folder = os.path.join("/root/autodl-tmp/mmdetection3d/prediction_ood_stu", "sequences", img_metas[0]['sequence_id'], "predictions") 
+        pred_folder = os.path.join("/root/autodl-tmp/realworld_ood", "sequences", img_metas[0]['sequence_id'], "predictions") 
         if not os.path.exists(pred_folder):
             os.makedirs(pred_folder)
         y_pred_bin = y_pred.astype(np.uint16)
@@ -509,7 +472,7 @@ class OccOoDHead(nn.Module):
         # y_pred[y_pred==20] = 100
 
         # save predictions
-        pred_folder = os.path.join("/root/autodl-tmp/prediction", "sequences", img_metas[0]['sequence_id'], "predictions") 
+        pred_folder = os.path.join("/root/autodl-tmp/realworld_pre", "sequences", img_metas[0]['sequence_id'], "predictions") 
         if not os.path.exists(pred_folder):
             os.makedirs(pred_folder)
         y_pred_bin = y_pred.astype(np.uint16)

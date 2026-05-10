@@ -340,7 +340,7 @@ class VAA_Kitti360_OoD_Dataset(Dataset):
                 preprocessing pipelines.
         """
         rgb_path = os.path.join(
-            self.data_root, "data_2d_raw", sequence, 'image_00/data_rect', frame_id + ".png"
+            self.data_root, "data_2d_raw", sequence, 'image', frame_id + ".png"
         )
 
         # for multiple images
@@ -402,7 +402,7 @@ class VAA_Kitti360_OoD_Dataset(Dataset):
                 ref = pose_list[int(frame_id)] # reference frame with GT semantic voxel
                 target = pose_list[int(target_id)]
             rgb_path = os.path.join(
-                self.data_root, "data_2d_raw", sequence, 'image_00/data_rect', target_id + ".png"
+                self.data_root, "data_2d_raw", sequence, 'image', target_id + ".png"
             )
             ref2target = np.matmul(inv(target), ref) # both for lidar
             target2cam = scan["T_velo_2_cam"] # lidar to camera
@@ -431,17 +431,17 @@ class VAA_Kitti360_OoD_Dataset(Dataset):
             pts_list.append(pts)
 
         # load ground truth
-        target_1_2_path = os.path.join(self.label_root, sequence, frame_id + "_1_2.npy")
-        target_1_2 = np.load(target_1_2_path)
-        target_1_2 = target_1_2.reshape(-1)
-        target_1_2 = target_1_2.reshape(128, 128, 16)
-        target_1_2 = target_1_2.astype(np.float32)
+        # target_1_2_path = os.path.join(self.label_root, sequence, frame_id + "_1_2.npy")
+        # target_1_2 = np.load(target_1_2_path)
+        # target_1_2 = target_1_2.reshape(-1)
+        # target_1_2 = target_1_2.reshape(128, 128, 16)
+        # target_1_2 = target_1_2.astype(np.float32)
 
         meta_dict = dict(
             sequence_id = sequence,
             frame_id = frame_id,
             lidar=np.concatenate(pts_list),
-            target_1_2=target_1_2,
+            # target_1_2=target_1_2,
             projected_pix=projected_pixs,
             fov_mask=fov_masks, 
             img_filename=image_paths,
@@ -467,7 +467,7 @@ class VAA_Kitti360_OoD_Dataset(Dataset):
         image_list = []
 
         rgb_path = os.path.join(
-            self.data_root, "data_2d_raw", sequence, 'image_00/data_rect', frame_id + ".png"
+            self.data_root, "data_2d_raw", sequence, 'image', frame_id + ".png"
         )
         img = Image.open(rgb_path).convert("RGB")
         # Image augmentation
@@ -491,7 +491,7 @@ class VAA_Kitti360_OoD_Dataset(Dataset):
                 target_id = frame_id
 
             rgb_path = os.path.join(
-                self.data_root, "data_2d_raw", sequence, 'image_00/data_rect', target_id + ".png"
+                self.data_root, "data_2d_raw", sequence, 'image', target_id + ".png"
             )
             img = Image.open(rgb_path).convert("RGB")
             # Image augmentation

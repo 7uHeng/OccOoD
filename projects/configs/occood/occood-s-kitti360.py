@@ -1,4 +1,4 @@
-work_dir = '/root/autodl-tmp/SGN/s-kitti360'
+work_dir = '/root/autodl-tmp/OccOoD/occood-s-kitti360'
 _base_ = [
     '../_base_/default_runtime.py'
 ]
@@ -18,7 +18,7 @@ _depthmodel_= 'msnet3d'
 _depthmodel_test_= 'sql'
 model = dict(
    type='OccOoD',
-   pretrained=dict(img='/root/autodl-tmp/ckpts/resnet50-19c8e357.pth'),
+   pretrained=dict(img='/root/autodl-tmp/OccOoD/ckpts/resnet50-19c8e357.pth'),
    img_backbone=dict(
        type='ResNet',
        depth=50,
@@ -62,7 +62,7 @@ model = dict(
        out_size_factor=4)))
 
 dataset_type = 'Kitti360Dataset'
-data_root = '/root/autodl-tmp/datasets/sscbench-KITTI-360/squashfs-root/sscbench-kitti/'
+data_root = '/root/autodl-tmp/sscbench-kitti-360/sscbench-kitti/'
 file_client_args = dict(backend='disk')
 
 data = dict(
@@ -80,7 +80,7 @@ data = dict(
        labels_tag = _labels_tag_),
    val=dict(
        type=dataset_type,
-       split = "val",
+       split = "test",
        test_mode=True,
        data_root=data_root,
        preprocess_root=data_root + 'preprocess',

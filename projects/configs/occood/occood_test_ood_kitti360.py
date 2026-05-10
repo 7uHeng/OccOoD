@@ -53,7 +53,8 @@ model = dict(
        geo_scal_loss=_geo_scal_loss_,
        sem_scal_loss=_sem_scal_loss_,
        scale_2d_list=[16],
-       use_sem = True
+       dataset='kitti360',
+       use_sem = False
        ),
    train_cfg=dict(pts=dict(
        grid_size=[512, 512, 1],
@@ -61,10 +62,10 @@ model = dict(
        point_cloud_range=point_cloud_range,
        out_size_factor=4)))
 
-dataset_type = 'SemanticKittiDataset'
-dataset_test_type = 'VAA_Kitti_OoD_Dataset'
-data_root = '/root/autodl-tmp/mmdetection3d/kitti/'
-data_test_root = '/root/autodl-tmp/VAA-KITTIv2'
+dataset_type = 'Kitti360Dataset'
+dataset_test_type = 'VAA_Kitti360_OoD_Dataset'
+data_root = '/root/autodl-tmp/sscbench-kitti-360/sscbench-kitti/'
+data_test_root = '/root/autodl-tmp/VAA-KITTI360/'
 file_client_args = dict(backend='disk')
 
 data = dict(
@@ -82,7 +83,7 @@ data = dict(
        labels_tag = _labels_tag_),
    val=dict(
        type=dataset_test_type,
-       split = "test",
+       split = "val",
        test_mode=True,
        data_root=data_test_root,
        preprocess_root=data_test_root + 'dataset',
@@ -95,7 +96,7 @@ data = dict(
        split = "test",
        test_mode=True,
        data_root=data_test_root,
-       preprocess_root=data_test_root + 'dataset',
+       preprocess_root=data_test_root,
        eval_range = 51.2,
        depthmodel=_depthmodel_test_,
        temporal = _temporal_test_ ,

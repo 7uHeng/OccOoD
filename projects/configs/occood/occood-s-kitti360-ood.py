@@ -1,4 +1,4 @@
-work_dir = ''
+work_dir = '/root/autodl-tmp/OccOoD/sgn-ood-kitti360'
 _base_ = [
     '../_base_/default_runtime.py'
 ]
@@ -8,18 +8,18 @@ plugin_dir = 'projects/mmdet3d_plugin/'
 _dim_ = 128
 
 _labels_tag_ = 'labels'
-_temporal_ = [-12, -9, -6, -3]
-_temporal_test_ = []
+_temporal_ = []
 point_cloud_range = [0, -25.6, -2.0, 51.2, 25.6, 4.4]
 voxel_size = [0.2, 0.2, 0.2]
 
 _sem_scal_loss_ = True
 _geo_scal_loss_ = True
-_depthmodel_= 'msnet3d'
+# _depthmodel_= 'msnet3d'
+_depthmodel_= 'sql'
 _depthmodel_test_= 'sql'
 model = dict(
    type='OccOoD',
-   pretrained=dict(img='ckpts/resnet50-19c8e357.pth'),
+   pretrained=dict(img='/root/autodl-tmp/OccOoD/ckpts/resnet50-19c8e357.pth'),
    img_backbone=dict(
        type='ResNet',
        depth=50,
@@ -53,7 +53,8 @@ model = dict(
        geo_scal_loss=_geo_scal_loss_,
        sem_scal_loss=_sem_scal_loss_,
        scale_2d_list=[16],
-       use_sem = True
+       dataset='kitti360',
+       use_sem = False
        ),
    train_cfg=dict(pts=dict(
        grid_size=[512, 512, 1],
@@ -61,10 +62,8 @@ model = dict(
        point_cloud_range=point_cloud_range,
        out_size_factor=4)))
 
-dataset_type = 'SemanticKittiDataset'
-dataset_test_type = 'VAA_Kitti_OoD_Dataset'
-data_root = '/root/autodl-tmp/mmdetection3d/kitti/'
-data_test_root = '/root/autodl-tmp/VAA-KITTIv2'
+dataset_type = 'Kitti360Dataset'
+data_root = '/root/autodl-tmp/sscbench-kitti-360/sscbench-kitti/'
 file_client_args = dict(backend='disk')
 
 data = dict(
@@ -75,30 +74,30 @@ data = dict(
        split = "train",
        test_mode=False,
        data_root=data_root,
-       preprocess_root=data_root + 'dataset',
+       preprocess_root=data_root + 'preprocess',
        eval_range = 51.2,
        depthmodel=_depthmodel_,
        temporal = _temporal_,
        labels_tag = _labels_tag_),
    val=dict(
-       type=dataset_test_type,
+       type=dataset_type,
        split = "test",
        test_mode=True,
-       data_root=data_test_root,
-       preprocess_root=data_test_root + 'dataset',
+       data_root=data_root,
+       preprocess_root=data_root + 'preprocess',
        eval_range = 51.2,
-       depthmodel=_depthmodel_test_,
-       temporal = _temporal_test_ ,
+       depthmodel=_depthmodel_,
+       temporal = _temporal_,
        labels_tag = _labels_tag_),
    test=dict(
-       type=dataset_test_type,
+       type=dataset_type,
        split = "test",
        test_mode=True,
-       data_root=data_test_root,
-       preprocess_root=data_test_root + 'dataset',
+       data_root=data_root,
+       preprocess_root=data_root + 'preprocess',
        eval_range = 51.2,
-       depthmodel=_depthmodel_test_,
-       temporal = _temporal_test_ ,
+       depthmodel=_depthmodel_,
+       temporal = _temporal_,
        labels_tag = _labels_tag_),
    shuffler_sampler=dict(type='DistributedGroupSampler'),
    nonshuffler_sampler=dict(type='DistributedSampler')
@@ -115,7 +114,7 @@ lr_config = dict(
    warmup_iters=500,
    warmup_ratio=1.0 / 3,
    min_lr_ratio=1e-3)
-total_epochs = 48
+total_epochs = 35
 evaluation = dict(interval=1)
 
 runner = dict(type='EpochBasedRunner', max_epochs=total_epochs)

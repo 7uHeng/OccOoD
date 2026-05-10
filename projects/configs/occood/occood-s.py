@@ -1,4 +1,4 @@
-work_dir = '/root/autodl-tmp/SGN/occood-s'
+work_dir = '/root/autodl-tmp/OccOoD/occood-s'
 _base_ = [
     '../_base_/default_runtime.py'
 ]
@@ -19,7 +19,7 @@ _depthmodel_= 'msnet3d'
 _depthmodel_test_= 'sql'
 model = dict(
    type='OccOoD',
-   pretrained=dict(img='/root/autodl-tmp/ckpts/resnet50-19c8e357.pth'),
+   pretrained=dict(img='/root/autodl-tmp/OccOoD/ckpts/resnet50-19c8e357.pth'),
    img_backbone=dict(
        type='ResNet',
        depth=50,
@@ -53,7 +53,7 @@ model = dict(
        geo_scal_loss=_geo_scal_loss_,
        sem_scal_loss=_sem_scal_loss_,
        scale_2d_list=[16],
-       use_sem = True
+       use_sem=True
        ),
    train_cfg=dict(pts=dict(
        grid_size=[512, 512, 1],
@@ -63,7 +63,7 @@ model = dict(
 
 dataset_type = 'SemanticKittiDataset'
 # dataset_test_type = 'VAA_Kitti_OoD_Dataset'
-data_root = '/root/autodl-tmp/datasets/SemanticKITTI/'
+data_root = '/root/autodl-tmp/kitti/'
 # data_test_root = '/root/autodl-tmp/private/VAA-KITTI'
 file_client_args = dict(backend='disk')
 
@@ -99,8 +99,6 @@ data = dict(
        data_root=data_root,
        preprocess_root=data_root + 'dataset',
        eval_range = 51.2,
-#        eval_range = 25.6,
-#        eval_range = 12.8,
     #    depthmodel=_depthmodel_test_,
     #    temporal = _temporal_test_ ,
        depthmodel=_depthmodel_,

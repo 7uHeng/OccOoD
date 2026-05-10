@@ -34,8 +34,13 @@ class SemanticKittiDataset(Dataset):
         self.depth_query = "msnet3d"
         self.depthmodel = depthmodel
         self.eval_range = eval_range
+        # splits = {
+        #     "train": ["00", "01", "02", "03", "04", "05", "06", "07", "09", "10"],
+        #     "val": ["08"],
+        #     "test": ["11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"],
+        # }
         splits = {
-            "train": ["00", "01", "02", "03", "04", "05", "06", "07", "09", "10"],
+            "train": ["00", "01", "02", "03", "04", "05", "06"],
             "val": ["08"],
             "test": ["11", "12", "13", "14", "15", "16", "17", "18", "19", "20", "21"],
         }
@@ -434,11 +439,10 @@ class SemanticKittiDataset(Dataset):
             target_1_8 = target_1_8.reshape(-1)
             target_1_8 = target_1_8.reshape(32, 32, 4)
             target_1_8 = target_1_8.astype(np.float32)
-
-            semantic_2d_path = os.path.join('/root/autodl-tmp/2d_sem_semantic', sequence, frame_id + ".npy")
+            
+            semantic_2d_path = os.path.join('/root/autodl-tmp/OccOoD/2d_sem_semantic', sequence, frame_id + ".npy")
             semantic_2d = np.load(semantic_2d_path)
             semantic_2d = semantic_2d.astype(np.float32)
-
         else:
             target_1_2 = None
             target_1_8 = None
@@ -452,7 +456,6 @@ class SemanticKittiDataset(Dataset):
             target_1_2=target_1_2,
             target_1_8=target_1_8,
             semantic = semantic_2d,
-
             projected_pix=projected_pixs,
             fov_mask=fov_masks, 
             img_filename=image_paths,

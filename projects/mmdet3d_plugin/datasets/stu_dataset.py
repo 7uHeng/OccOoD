@@ -35,7 +35,9 @@ class stu_Dataset(Dataset):
         self.depthmodel = depthmodel #sql, only monodepth
         self.eval_range = eval_range
         splits = {
-            "val": ["125", "144"],
+            # "val": ["125", "144"],
+            "test": ["125"],
+            # "test": ["1"],
         }
         self.split = split 
         self.sequences = splits[split]
@@ -160,6 +162,7 @@ class stu_Dataset(Dataset):
             
             H_new, W_new = 370, 1220
             H_orig, W_orig = 1208, 1920
+            # H_orig, W_orig = 1242, 2208
             scale_w = W_new / W_orig
             scale_h = H_new / H_orig
             P_scaled = P.copy()
@@ -340,7 +343,7 @@ class stu_Dataset(Dataset):
                 preprocessing pipelines.
         """
         rgb_path = os.path.join(
-            self.data_root, "dataset", "sequences", sequence, "image", frame_id + ".png"
+            self.data_root, sequence, "image", 'port_a_cam_0', frame_id + ".png"
         )
         
         # for multiple images

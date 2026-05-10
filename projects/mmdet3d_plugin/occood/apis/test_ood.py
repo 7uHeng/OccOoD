@@ -99,7 +99,7 @@ def custom_multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=False):
             target_ood_original[(target_ood_original >= 20) & (target_ood_original < 255)] = 1
             label_20_mask = (target_ood == 20)
             # dilation_radius
-            dilation_radius = 4  # 4-6 = 0.8-1.2m
+            dilation_radius = 4 # 4-6 = 0.8-1.2m
             kernel_size = 2 * dilation_radius + 1
             padding = dilation_radius
             dilation_kernel = torch.ones((1, 1, kernel_size, kernel_size, kernel_size), device=target_ood.device)

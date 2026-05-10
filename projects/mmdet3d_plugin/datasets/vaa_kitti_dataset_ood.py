@@ -36,6 +36,7 @@ class VAA_Kitti_OoD_Dataset(Dataset):
         self.eval_range = eval_range
         splits = {
             "val": ["07_VAA", "09_VAA", "10_VAA"],
+            "test": ["07_VAA"],
         }
         self.split = split 
         self.sequences = splits[split]
