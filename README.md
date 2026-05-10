@@ -20,7 +20,7 @@ anomalies such as animals, furniture, and garbage bags.
 ### Dataset Download
 - [VAA-KITTI](https://drive.google.com/file/d/1rMymO3W2BfuupIdan93DcpCv2JzI7r6l/view?usp=drive_link)
 - [VAA-KITTI-360](https://drive.google.com/file/d/123yYb2P69JhJ5DwrwRlgZMMH7xobzfyN/view?usp=drive_link)
-- [Additional Data](https://drive.google.com/file/d/19r2o652-58XDhvl1tM8bIO_39G6U709q/view?usp=sharing)
+- [VAA-STU](https://drive.google.com/file/d/19r2o652-58XDhvl1tM8bIO_39G6U709q/view?usp=sharing)
 ## Getting Started
 * Refer to [install.md](https://github.com/7uHeng/OccOoD/blob/main/docs/install.md) to install the environment.
 * Refer to [dataset.md](https://github.com/7uHeng/OccOoD/blob/main/docs/dataset.md) to prepare SemanticKITTI and KITTI360 dataset.
