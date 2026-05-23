@@ -57,7 +57,7 @@
 
 ## 🤖 Model Zoo
 
-<p align="center">Pretrained checkpoints on 🤗 <a href="https://huggingface.co/7uheng/occood">Hugging Face</a> &nbsp;·&nbsp; mIoU = OOD detection score (lower is better)</p>
+<p align="center">Pretrained checkpoints on 🤗 <a href="https://huggingface.co/7uheng/occood">Hugging Face</a> &nbsp;·&nbsp;</p>
 
 | Dataset | Model | mIoU | Log | Weight |
 |:--|:--|:--:|:--|:--|
