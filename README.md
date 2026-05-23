@@ -43,7 +43,7 @@
 |:--:|:--|:--|:--|:--|
 | 1 | **VAA-KITTI** | SemanticKITTI | 26 categories | [⬇️ Google Drive](https://drive.google.com/file/d/1rMymO3W2BfuupIdan93DcpCv2JzI7r6l/view?usp=drive_link) |
 | 2 | **VAA-KITTI-360** | KITTI-360 | 26 categories | [⬇️ Google Drive](https://drive.google.com/file/d/123yYb2P69JhJ5DwrwRlgZMMH7xobzfyN/view?usp=drive_link) |
-| 3 | **VAA-STU** | STU | 26 categories | [⬇️ Google Drive](https://drive.google.com/file/d/19r2o652-58XDhvl1tM8bIO_39G6U709q/view?usp=sharing) |
+| 3 | **VAA-STU** | STU | - | [⬇️ Google Drive](https://drive.google.com/file/d/19r2o652-58XDhvl1tM8bIO_39G6U709q/view?usp=sharing) |
 
 > 📊 **Anomaly types:** animals · furniture · garbage bags · construction debris · vegetation overgrowth · vehicles · and more
 
