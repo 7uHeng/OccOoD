@@ -4,8 +4,6 @@
 
 ### Out-of-Distribution 3D Semantic Occupancy Prediction
 
-[![Dataset](https://img.shields.io/badge/3_Benchmarks-Available-2ea44f)](https://github.com/7uHeng/OccOoD)
-[![Anomalies](https://img.shields.io/badge/Anomaly_Classes-26-blue)](https://github.com/7uHeng/OccOoD)
 [![License](https://img.shields.io/badge/License-Apache_2.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 </div>
